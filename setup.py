@@ -3,11 +3,11 @@
 import os
 
 try:
-    from setuptools import setup
+    from setuptools import setup, find_packages
 except ImportError:
     from ez_setup import use_setuptools
     use_setuptools()
-    from setuptools import setup
+    from setuptools import setup, find_packages
 
 
 def read(fname):
@@ -22,9 +22,7 @@ setup(
     license='BSD',
     url='http://github.com/philomat/django-persistent-messages',
     keywords = ['messages', 'django', 'persistent',],
-    packages=[
-        'persistent_messages',
-    ],
+    packages=find_packages(),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
@@ -34,5 +32,6 @@ setup(
         'Programming Language :: Python',
         'Framework :: Django',
     ],
+    include_package_data=True,
     zip_safe=False,
 )

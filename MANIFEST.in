@@ -1,0 +1,2 @@
+include README.md
+recursive-include persistent_messages/templates *
