@@ -1,21 +1,22 @@
-import persistent_messages
-from persistent_messages.constants import PERSISTENT_MESSAGE_LEVELS
+from __future__ import unicode_literals
+from django.utils.encoding import python_2_unicode_compatible
 from django.conf import settings
 from django.db import models
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.contrib import messages
 from django.contrib.messages import utils
 from django.utils.translation import ugettext_lazy as _
 
-LEVEL_TAGS = utils.get_level_tags()
+import persistent_messages
+from persistent_messages.constants import PERSISTENT_MESSAGE_LEVELS
 
+
+LEVEL_TAGS = utils.get_level_tags()
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
+
+@python_2_unicode_compatible
 class Message(models.Model):
-    user = models.ForeignKey(AUTH_USER_MODEL, blank=True, null=True)
-    from_user = models.ForeignKey(AUTH_USER_MODEL, blank=True, null=True, related_name="from_user")
-    subject = models.CharField(max_length=255, blank=True, default='')
-    message = models.TextField()
     LEVEL_CHOICES = (
         (messages.DEBUG, 'DEBUG'),
         (messages.INFO, 'INFO'),
@@ -28,6 +29,12 @@ class Message(models.Model):
         (persistent_messages.WARNING, 'PERSISTENT WARNING'),
         (persistent_messages.ERROR, 'PERSISTENT ERROR'),
     )
+
+    user = models.ForeignKey(AUTH_USER_MODEL, blank=True, null=True, on_delete=models.SET_NULL)
+    from_user = models.ForeignKey(AUTH_USER_MODEL, blank=True, null=True,
+        related_name="from_user", on_delete=models.SET_NULL)
+    subject = models.CharField(max_length=255, blank=True, default='')
+    message = models.TextField()
     level = models.IntegerField(choices=LEVEL_CHOICES)
     extra_tags = models.CharField(max_length=128)
     created = models.DateTimeField(auto_now_add=True)    
@@ -43,12 +50,12 @@ class Message(models.Model):
     def __eq__(self, other):
         return isinstance(other, Message) and self.level == other.level and \
                                               self.message == other.message
-    def __unicode__(self):
+    def __str__(self):
         if self.subject:
-            message = _('%(subject)s: %(message)s') % {'subject': self.subject, 'message': self.message}
+            message = '{}: {}'.format(self.subject, self.message)
         else:
             message = self.message
-        return force_unicode(message)
+        return force_text(message)
 
     def _prepare_message(self):
         """
@@ -56,25 +63,21 @@ class Message(models.Model):
         and ``extra_tags`` and ``subject`` to unicode in case they are lazy translations.
 
         Known "safe" types (None, int, etc.) are not converted (see Django's
-        ``force_unicode`` implementation for details).
+        ``force_text`` implementation for details).
         """
-        self.subject = force_unicode(self.subject, strings_only=True)
-        self.message = force_unicode(self.message, strings_only=True)
-        self.extra_tags = force_unicode(self.extra_tags, strings_only=True)
+        self.subject = force_text(self.subject, strings_only=True)
+        self.message = force_text(self.message, strings_only=True)
+        self.extra_tags = force_text(self.extra_tags, strings_only=True)
 
     def save(self, *args, **kwargs):
         self._prepare_message()
         super(Message, self).save(*args, **kwargs)
 
-    def _get_tags(self):
-        label_tag = force_unicode(LEVEL_TAGS.get(self.level, ''),
-                                  strings_only=True)
-        extra_tags = force_unicode(self.extra_tags, strings_only=True)
-   
-        if (self.read):
-            read_tag = "read"
-        else:
-            read_tag = "unread"
+    @property
+    def tags(self):
+        label_tag = force_text(LEVEL_TAGS.get(self.level, ''), strings_only=True)
+        extra_tags = force_text(self.extra_tags, strings_only=True)
+        read_tag = "read" if self.read else "unread"
    
         if extra_tags and label_tag:
             return u' '.join([extra_tags, label_tag, read_tag])
@@ -83,5 +86,4 @@ class Message(models.Model):
         elif label_tag:
             return u' '.join([label_tag, read_tag])
         return read_tag
-    tags = property(_get_tags)
-    
+

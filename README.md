@@ -36,10 +36,10 @@ This document assumes that you are familiar with Python and Django.
  
 5. Add the persistent_messages URLs to your URL conf. For instance, in order to make messages available under `http://domain.com/messages/`, add the following line to `urls.py`.
 
-        urlpatterns = patterns('',
-            (r'^messages/', include('persistent_messages.urls')),
+        urlpatterns = [
+            url(r'^messages/', include('persistent_messages.urls')),
             ...
-        )
+        ]
 
 6. In your settings, set the message [storage backend](http://docs.djangoproject.com/en/dev/ref/contrib/messages/#message-storage-backends) to `persistent_messages.storage.PersistentMessageStorage`:
 

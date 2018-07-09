@@ -26,7 +26,7 @@ class PersistentMessageStorage(FallbackStorage):
     def __init__(self, *args, **kwargs):
         super(PersistentMessageStorage, self).__init__(*args, **kwargs)
         self.non_persistent_messages = []
-        self.is_anonymous = not get_user(self.request).is_authenticated()
+        self.is_anonymous = not get_user(self.request).is_authenticated
 
     def _message_queryset(self, exclude_unread=True):
         qs = Message.objects.filter(user=get_user(self.request)).filter(Q(expires=None) | Q(expires__gt=datetime.datetime.now()))
@@ -41,7 +41,7 @@ class PersistentMessageStorage(FallbackStorage):
         intended to be stored in this storage were, in fact, stored and
         retrieved; e.g., ``(messages, all_retrieved)``.
         """
-        if not get_user(self.request).is_authenticated():
+        if not get_user(self.request).is_authenticated:
             return super(PersistentMessageStorage, self)._get(*args, **kwargs)
         messages = []
         for message in self._message_queryset():
@@ -68,7 +68,7 @@ class PersistentMessageStorage(FallbackStorage):
         self.non_persistent_messages = []
 
     def __iter__(self):
-        if not get_user(self.request).is_authenticated():
+        if not get_user(self.request).is_authenticated:
             return super(PersistentMessageStorage, self).__iter__()
         self.used = True
         messages = []
@@ -78,7 +78,7 @@ class PersistentMessageStorage(FallbackStorage):
         return iter(messages)
 
     def _prepare_messages(self, messages):
-        if not get_user(self.request).is_authenticated():
+        if not get_user(self.request).is_authenticated:
             return super(PersistentMessageStorage, self)._prepare_messages(messages)
         """
         Obsolete method since model takes care of this.
@@ -93,7 +93,7 @@ class PersistentMessageStorage(FallbackStorage):
         If STORE_WHEN_ADDING is True, messages are already stored at this time and won't be
         saved again.
         """
-        if not get_user(self.request).is_authenticated():
+        if not get_user(self.request).is_authenticated:
             return super(PersistentMessageStorage, self)._store(messages, response, *args, **kwargs)
         for message in messages:
             if not self.used or message.is_persistent():
@@ -102,7 +102,7 @@ class PersistentMessageStorage(FallbackStorage):
         return []
 
     def update(self, response):
-        if not get_user(self.request).is_authenticated():
+        if not get_user(self.request).is_authenticated:
             return super(PersistentMessageStorage, self).update(response)
         """
         Deletes all non-persistent, read messages. Saves all unstored messages.
@@ -119,7 +119,7 @@ class PersistentMessageStorage(FallbackStorage):
         not less than the recording level (``self.level``).
         """
         to_user = user or get_user(self.request)
-        if not to_user.is_authenticated():
+        if not to_user.is_authenticated:
             if Message(level=level).is_persistent():
                 raise NotImplementedError('Persistent message levels cannot be used for anonymous users.')
             else:

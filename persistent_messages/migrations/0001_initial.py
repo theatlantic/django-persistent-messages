@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
                 ('read', models.BooleanField(default=False)),
                 ('expires', models.DateTimeField(null=True, blank=True)),
                 ('close_timeout', models.IntegerField(null=True, blank=True)),
-                ('from_user', models.ForeignKey(related_name='from_user', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
-                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('from_user', models.ForeignKey(related_name='from_user', blank=True, to=settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)),
+                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)),
             ],
             options={
             },
